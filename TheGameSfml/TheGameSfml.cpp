@@ -10,36 +10,101 @@ using namespace sf;
 
 /*<!-- functions -->*/
 void background();
-void movement(Sprite& sonic, int& x, int& y);
+void movement(struct Mainplayer);
 void coins();
 void menue();
-void gameLoad();
+void gameLoad();	
+void ground(Sprite grounds[]);
 
+
+struct Mainplayer
+{
+	Sprite sonic;
+	float currentframe;
+	float  move_Y, move_X;
+	bool onground;
+	FloatRect rect;
+
+		// Sonic Set
+		void sp(Texture& player)   
+		{
+		sonic.setTexture(player);
+		sonic.setTextureRect(IntRect(0, 0, 84, 103));
+		sonic.setScale(1.1, 1.1);
+		move_X = 0;
+		move_Y = 0;
+		currentframe = 0;	
+		}	
+		// Sonic update at every frame
+		void update(float time) {
+			rect.left += move_X * time;   // sonic movement at x set
+			rect.top += move_Y * time;   // sonic movement at y set
+			onground = false;
+			if (!onground) 
+			{
+				move_Y += (0.005 * time);   // Gravity
+			}
+			currentframe += 0.05 * time;
+			if (currentframe > 6) {
+				currentframe -= 6;
+			}
+			if (move_X > 0) {
+				sonic.setTextureRect(IntRect(84 * int(currentframe), 0, 84, 103));    // sonic changing to next frame pic
+			}
+			if (move_X < 0) {
+				sonic.setTextureRect(IntRect(84 * int(currentframe)+84, 0, -84, 103));  // sonic changing to next frame pic by opposite dir
+			}
+			sonic.setPosition(rect.left, rect.top);  // sonic real movement 
+			move_X = 0;
+		}
+		
+
+};
+
+
+
+long long x = 0, y = 0, lastKeyPressed;  //variables
 
 int main()
 {
-
-	int x = 0, y = 0, velocityY = 3;
-	RenderWindow window(VideoMode(1920, 1080), "Sonic", Style::Default);
+	// window
+	RenderWindow window(VideoMode(800, 480), "Sonic", Style::Default);
 	window.setFramerateLimit(30);
-	Texture background, player, ground;
-	background.loadFromFile("SonicLevel2.png");
-	ground.loadFromFile("Backgroung_ground.png");
-	player.loadFromFile("sonicModified.png");
 
-	Sprite back, sonic, gd;
+	// sonic texture
+	Texture player; 
+	player.loadFromFile("sonicModified.png");
+	
+
+
+
+	//MAP
+	Texture background, map;
+	background.loadFromFile("map.png");
+	map.loadFromFile("map.png");
+	Sprite back, grounds[13];
 	back.setTexture(background);
-	back.setPosition(-40, 500);
-	gd.setTexture(ground);
-	gd.setPosition(0, -1540);
-	sonic.setTexture(player);
-	sonic.setPosition(0, 880);
-	sonic.setTextureRect(IntRect(x * 80, y * 100, 80, 100));
-	sonic.setOrigin(42, 51);
-	sonic.scale(0.5, 0.5);
-	View camera(FloatRect(20, 0, 600, 600));
-	camera.setCenter(sonic.getPosition());
+	for (int i = 0; i < 13; i++) {
+		grounds[i].setTexture(map);
+	}
+
+
+	//clock for time
+	Clock clock;
+
+
+    //Sonic call from struct
+	Mainplayer Sonic;
+	Sonic.sp(player);
+	Sonic.rect.left = 56;
+	Sonic.rect.top = 300;
+
+	// window camera
+	View camera;
+	camera.setCenter(Sonic.sonic.getPosition().x + 500, Sonic.sonic.getPosition().y);
 	window.setView(camera);
+
+
 
 
 	while (window.isOpen())
@@ -51,265 +116,126 @@ int main()
 				window.close();
 			}
 		}
-		/* !<-- widow view-->*/
-		window.setView(camera);
-		window.clear();
-		/*window.draw(back);*/
-		window.draw(sonic);
-		window.display();
 
-	}
-}
-void movement(Sprite& sonic, int& x, int& y) {
-
-	if ((Keyboard::isKeyPressed(Keyboard::Key::W)) || (Keyboard::isKeyPressed(Keyboard::Key::Up)))
-	{
-
-		sonic.move(0, -10);
-
-	}
-
-	if ((Keyboard::isKeyPressed(Keyboard::Key::S)) || (Keyboard::isKeyPressed(Keyboard::Key::Down)))
-	{
-		y = 2;
-		x = 0;
-		sonic.setTextureRect(IntRect(x * 84, y * 103, 84, 103));
-
-	}
-	if ((Keyboard::isKeyPressed(Keyboard::Key::D)) || (Keyboard::isKeyPressed(Keyboard::Key::Right)))
-	{
-		sonic.move(0, 10);
-		sonic.setScale(0.5, 0.5);
-		x++;
-		if (x % 9 == 0) {
-
-			y = 1;
-		}
-		if (x == 3 && y == 1) {
-			y = 0;
-		}
-
-		sonic.move(10, 0);
-		/* camera.move(10, 0);*/
-
-
-
-		x %= 9;
-		sonic.setTextureRect(IntRect(x * 84, y * 103, 84, 103));
-	}
-	else if ((Keyboard::isKeyPressed(Keyboard::Key::A)) || (Keyboard::isKeyPressed(Keyboard::Key::Left)))
-	{
-		sonic.setScale(-0.5, 0.5);
-		x++;
-		if (x % 9 == 0) {
-
-			y = 1;
-		}
-		if (x == 3 && y == 1) {
-			y = 0;
-		}
-		sonic.move(-10, 0);
-		/*  camera.move(-10, 0);*/
-
-		x %= 9;
-		sonic.setTextureRect(IntRect(x * 84, y * 103, 84, 103));
-	}
-
-
-
-}
-
-
-
-//void Movement(Sprite& sonic, int& x, int& y ,View& camera, Sprite& gd,int) {
-//  
-//}
-
-
-
-
-/*
-Sonic
-
-void SonicMovement(Sprite &sonic,int &x,int &y);
-void SonicJump(Sprite& sonic, int& x, int& y , RectangleShape &ground);
-void collision_Coin(Sprite& sonic, Sprite Coin[10], int &score , Text &text);
-void Coin_Animation(Sprite Coin[10], int& x2, int& y2);
-
-
-int main() {
-
-
-	RenderWindow window(VideoMode(1022, 498), "SFML works!");
-	window.setFramerateLimit(30);
-
-	int x = 0, y = 0, x2 = 0, y2 = 0, score = 0;
-
-
-
-	RectangleShape rect, ground;
-	ground.setSize(Vector2f(1022, 50));
-	ground.setPosition(0, 400);
-	rect.setSize(Vector2f(1022, 70));
-
-	Texture sonictexture, backgroundtexture, cointexture;
-	cointexture.loadFromFile("SonicCoinsAnimation.png");
-	sonictexture.loadFromFile("SonicAnimation copy.png");
-	backgroundtexture.loadFromFile("SonicBackground.jpg");
-
-
-	Sprite sonic, Back, Coin[10];
-	Back.setTexture(backgroundtexture);
-	sonic.setTexture(sonictexture);
-	sonic.setPosition(42, 350);
-	sonic.setTextureRect(IntRect(x * 84, y * 103, 84, 103));
-	sonic.setOrigin(42, 51);
-
-	for (int i = 0; i < 10; i++)
-	{
-		Coin[i].setTexture(cointexture);
-		Coin[i].setPosition(200 + (i * 50), 340);
-		Coin[i].setScale(0.3, 0.3);
-		Coin[i].setTextureRect(IntRect(x2 * 135, y2 * 134, 135, 134));
-	}
-
-	Font font;
-	font.loadFromFile("Asman.ttf");
-
-
-	Text text;
-	text.setFont(font);
-	text.setString("Score : " + to_string(score));
-	text.setPosition(10, 10);
-	text.setFillColor(Color(50, 200, 300, 200));
-	text.setCharacterSize(50);
-
-
-	while (window.isOpen())
-	{
-		Event event;
-		while (window.pollEvent(event))
+		// time
+		float time = clock.getElapsedTime().asMicroseconds();
+		clock.restart();
+		time /= 650;
+		if (time>20)
 		{
-			if (event.type == Event::Closed)
-				window.close();
+			time = 20;
 		}
 
-		SonicJump(sonic, x, y , ground);
 
-		SonicMovement(sonic , x, y);
-
-		collision_Coin(sonic, Coin, score, text);
-
-		Coin_Animation(Coin, x2, y2);
-
-
-
-		window.clear();
-		window.draw(Back);
-		window.draw(rect);
-		window.draw(text);
-		window.draw(sonic);
-		for (size_t i = 0; i < 10; i++)
+		// lastkeypressed variable to know which side to draw sonic at static state
+		if (lastKeyPressed == 1)
 		{
-			window.draw(Coin[i]);
-
+			Sonic.sonic.setTextureRect(IntRect(0, 0, 80, 100));
 		}
-
-
-		window.display();
-	}
-
-
-	return 0;
-}
-
-
-
-
-
-
-void SonicMovement(Sprite &sonic , int &x ,int &y) {
-	if (Keyboard::isKeyPressed(Keyboard::Key::S))
-	{
-		y = 2;
-		x = 0;
-		sonic.setTextureRect(IntRect(x * 84, y * 103, 84, 103));
-
-	}
-	else if (Keyboard::isKeyPressed(Keyboard::Key::D))
-	{
-		sonic.setScale(1, 1);
-		x++;
-		if (x % 9 == 0) {
-
-			y = 1;
-		}
-		if (x == 3 && y == 1) {
-			y = 0;
-		}
-		sonic.move(15, 0);
-		x %= 9;
-
-		sonic.setTextureRect(IntRect(x * 84, y * 103, 84, 103));
-	}
-	else if (Keyboard::isKeyPressed(Keyboard::Key::A)) {
-		sonic.setScale(-1, 1);
-		x++;
-		if (x % 9 == 0) {
-
-			y = 1;
-		}
-		if (x == 3 && y == 1) {
-			y = 0;
-		}
-		sonic.move(-15, 0);
-		x %= 9;
-		sonic.setTextureRect(IntRect(x * 84, y * 103, 84, 103));
-	}
-}
-
-void SonicJump(Sprite& sonic, int& x, int& y ,RectangleShape &ground) {
-	if (sonic.getGlobalBounds().intersects(ground.getGlobalBounds())) {
-
-		if (Keyboard::isKeyPressed(Keyboard::Key::W))
+		else 
 		{
-			for (int i = 1; i < 15; i++)
-			{
-				sonic.move(0, -i);
+			Sonic.sonic.setTextureRect(IntRect(0+80, 0, -80, 100));
+		}
+
+
+		//set the map
+		ground(grounds);
+		
+
+		// to know any pos at the window by left click
+		if ((Mouse::isButtonPressed(Mouse::Left)))
+		{
+			Vector2i mousepos = Mouse::getPosition(window);
+			cout << mousepos.x << " " << mousepos.y<<endl;
+
+		}
+
+		// jump
+		if ((Keyboard::isKeyPressed(Keyboard::Key::W)) || (Keyboard::isKeyPressed(Keyboard::Key::Up)))
+		{
+			
+			
+				Sonic.move_Y = -0.4;
+				Sonic.onground = false;
+			
+
+
+		}
+		// moving right
+		if ((Keyboard::isKeyPressed(Keyboard::Key::D)) || (Keyboard::isKeyPressed(Keyboard::Key::Right)))
+		{
+			Sonic.move_X = 0.75;
+			lastKeyPressed = 1;
+			camera.move(15,0);
+			
+		}
+		// moving left
+		else if ((Keyboard::isKeyPressed(Keyboard::Key::A)) || (Keyboard::isKeyPressed(Keyboard::Key::Left)))
+		{
+			Sonic.move_X = -0.75;
+			lastKeyPressed = -1;
+			camera.move(-15, 0);
+
+		}
+
+
+		// collistion
+		for (int i = 0; i < 13; i++) {
+			if (Sonic.sonic.getGlobalBounds().intersects(grounds[i].getGlobalBounds())  && (Sonic.rect.left < grounds[i].getPosition().x + 470)) {
+				Sonic.onground = true;
+				Sonic.rect.top = grounds[i].getPosition().y - 100;
+				Sonic.move_Y = 0;
+				if (i==1 || i==3 || i == 8 || i==6)
+				{
+					return 0;
+				}
 			}
-
 		}
-	}
-	else {
 
-		sonic.move(0, 7);
-		y = 2;
-		x = 0;
-		sonic.setTextureRect(IntRect(x * 84, y * 103, 84, 103));
-	}
-}
 
-void collision_Coin(Sprite& sonic, Sprite Coin[10], int &score , Text &text) {
-	for (int i = 0; i < 10; i++)
-	{
-		if (sonic.getGlobalBounds().intersects(Coin[i].getGlobalBounds()))
+		window.setView(camera);  //window view
+		Sonic.update(time);   // all sonic actions
+		window.clear();   // renew window
+		//draw the map
+		for (int i = 0; i < 13; i++)
 		{
-			score++;
-			Coin[i].setScale(0, 0);
-			text.setString("Score : " + to_string(score));
+			window.draw(grounds[i]);
 		}
+		window.draw(Sonic.sonic); //sonic draw
+		window.display();
+
 	}
 }
 
-void Coin_Animation(Sprite Coin[10], int& x2, int& y2) {
+void ground(Sprite grounds[]) {
+	grounds[0].setTextureRect(IntRect(0, 384, 513, 96));
+	grounds[0].setPosition(0, 384);
+	grounds[1].setTextureRect(IntRect(513, 414, 190, 66)); //trap
+	grounds[1].setPosition(513, 414);
+	grounds[2].setTextureRect(IntRect(704, 384, 160, 96));
+	grounds[2].setPosition(704, 384);
+	grounds[3].setTextureRect(IntRect(866, 414, 190, 66)); //trap
+	grounds[3].setPosition(866, 414);
+	grounds[4].setTextureRect(IntRect(1056, 384, 478, 96));
+	grounds[4].setPosition(1056, 384);
+	grounds[5].setTextureRect(IntRect(1536, 224, 160, 256));
+	grounds[5].setPosition(1536, 224);
+	grounds[6].setTextureRect(IntRect(1697, 253, 703, 227));
+	grounds[6].setPosition(1697, 253);//trap
+	grounds[7].setTextureRect(IntRect(2400, 224, 321, 256));
+	grounds[7].setPosition(2400, 224);
+	grounds[8].setTextureRect(IntRect(2721, 445, 670, 35)); //trap
+	grounds[8].setPosition(2721, 445);
+	grounds[9].setTextureRect(IntRect(2816, 159, 96, 33));
+	grounds[9].setPosition(2816, 159);
+	grounds[10].setTextureRect(IntRect(3008, 224, 96, 33));
+	grounds[10].setPosition(3008, 224);
+	grounds[11].setTextureRect(IntRect(3167, 352, 96, 33));
+	grounds[11].setPosition(3167, 352);
+	grounds[12].setTextureRect(IntRect(3392, 384, 1375, 96));
+	grounds[12].setPosition(3392, 384);
+	grounds[13].setTextureRect(IntRect(4767, 0, 33, 480));
+	grounds[13].setPosition(4767, 0);
 
-	x2++;
-	x2 %= 10;
-	for (int i = 0; i < 10; i++)
-	{
-
-		Coin[i].setTextureRect(IntRect(x2 * 135, y2 * 134, 135, 134));
-	}
 
 }
-*/
